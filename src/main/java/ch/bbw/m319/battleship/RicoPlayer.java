@@ -5,12 +5,19 @@ import ch.bbw.m319.battleship.api.BattleshipField;
 import ch.bbw.m319.battleship.api.BattleshipPlayer;
 import ch.bbw.m319.battleship.api.ShipPosition;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class RicoPlayer implements BattleshipPlayer {
 
 	public static void main(String[] args) {
 		// let it play against itself
-		BattleshipArena.playMultipleAndCount(new RicoPlayer(), new RicoPlayer(), 1000);
+		BattleshipArena.playMultipleAndCount(new RicoPlayer(), new DumbPlayer(), 1000);
+		// BattleshipArena.playOnce(new RicoPlayer(), new DumbPlayer());
 	}
+
+
+	private final List<BattleshipField> shots = new ArrayList<>();
 
 	private BattleshipField randomField() {
 		int randomNum = (int)(Math.random() * 3);
@@ -59,13 +66,26 @@ public class RicoPlayer implements BattleshipPlayer {
 
 		BattleshipField fieldTwo = checkShip(fieldOne);
 
+		shots.clear();
 		return new ShipPosition(fieldOne, fieldTwo);
 
 	}
 
+	public BattleshipField checkAim() {
+        BattleshipField shot;
+        do {
+            shot = randomField();
+        } while (shots.contains(shot));
+
+        shots.add(shot);
+
+        return shot;
+    }
+
 	@Override
 	public BattleshipField takeAim() {
 		// TODO: replace this implementation: always bottom-right is not that good...
-        return randomField();
+
+        return checkAim();
 	}
 }
