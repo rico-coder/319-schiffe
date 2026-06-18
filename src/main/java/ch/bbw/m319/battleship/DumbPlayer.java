@@ -5,11 +5,11 @@ import ch.bbw.m319.battleship.api.BattleshipField;
 import ch.bbw.m319.battleship.api.BattleshipPlayer;
 import ch.bbw.m319.battleship.api.ShipPosition;
 
-public class DumPlayer implements BattleshipPlayer {
+public class DumbPlayer implements BattleshipPlayer {
 
 	public static void main(String[] args) {
 		// let it play against itself
-		BattleshipArena.playMultipleAndCount(new DumPlayer(), new DumPlayer(), 1000);
+		BattleshipArena.playMultipleAndCount(new DumbPlayer(), new DumbPlayer(), 1000);
 	}
 
 	private BattleshipField randomField() {
