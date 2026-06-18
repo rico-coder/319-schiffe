@@ -6,18 +6,29 @@ import ch.bbw.m319.battleship.api.BattleshipPlayer;
 import ch.bbw.m319.battleship.api.ShipPosition;
 
 import java.util.ArrayList;
+import java.util.IntSummaryStatistics;
 import java.util.List;
 
 public class RicoPlayer implements BattleshipPlayer {
 
-	public static void main(String[] args) {
+    public RicoPlayer() {
+        shots = new ArrayList<>();
+    }
+
+    public static void main(String[] args) {
 		// let it play against itself
 		BattleshipArena.playMultipleAndCount(new RicoPlayer(), new DumbPlayer(), 1000);
 		// BattleshipArena.playOnce(new RicoPlayer(), new DumbPlayer());
+		IntSummaryStatistics summaryStats = averageMoveCounts.stream()
+				.mapToInt(Integer::intValue)
+				.summaryStatistics();
+		System.out.println("Average moves so far: " + summaryStats.getAverage());
 	}
 
 
-	private final List<BattleshipField> shots = new ArrayList<>();
+	private final List<BattleshipField> shots;
+
+	private static final List<Integer> averageMoveCounts = new ArrayList<>();
 
 	private BattleshipField randomField() {
 		int randomNum = (int)(Math.random() * 3);
@@ -87,5 +98,10 @@ public class RicoPlayer implements BattleshipPlayer {
 		// TODO: replace this implementation: always bottom-right is not that good...
 
         return checkAim();
+	}
+
+	@Override
+	public void gameFinished(ShipPosition opponentShip, boolean youHaveWon) {
+		averageMoveCounts.add(shots.size());
 	}
 }
