@@ -5,30 +5,24 @@ import ch.bbw.m319.battleship.api.BattleshipField;
 import ch.bbw.m319.battleship.api.BattleshipPlayer;
 import ch.bbw.m319.battleship.api.ShipPosition;
 
-import java.util.ArrayList;
-import java.util.IntSummaryStatistics;
-import java.util.List;
+import java.util.*;
 
-public class RicoPlayer implements BattleshipPlayer {
+public class SmartRicoPlayer implements BattleshipPlayer {
 
-    public RicoPlayer() {
+    public SmartRicoPlayer() {
         shots = new ArrayList<>();
     }
 
     public static void main(String[] args) {
-		// let it play against itself
-		BattleshipArena.playMultipleAndCount(new RicoPlayer(), new DumbPlayer(), 10000);
-		// BattleshipArena.playOnce(new RicoPlayer(), new DumbPlayer());
-		IntSummaryStatistics summaryStats = averageMoveCounts.stream()
-				.mapToInt(Integer::intValue)
-				.summaryStatistics();
-		System.out.println("Average moves so far: " + summaryStats.getAverage());
+		BattleshipArena.playMultipleAndCount(new SmartRicoPlayer(), new DumbPlayer(), 1000);
 	}
 
 
 	private final List<BattleshipField> shots;
 
 	private static final List<Integer> averageMoveCounts = new ArrayList<>();
+
+	private static List<BattleshipField> nextFieldsToBeHit;
 
 	private BattleshipField randomField() {
 		int randomNum = (int)(Math.random() * 3);
@@ -70,9 +64,22 @@ public class RicoPlayer implements BattleshipPlayer {
 		return BattleshipField.valueOf(validFieldTwo[(int)(Math.random() * arrayLength)]);
 	}
 
+	private List<BattleshipField> getSurroundingFields(BattleshipField targetedField) {
+		return switch (targetedField) {
+			case A1 -> List.of(BattleshipField.A2, BattleshipField.B1);
+			case A2 -> List.of(BattleshipField.A1, BattleshipField.A3, BattleshipField.B2);
+			case A3 -> List.of(BattleshipField.A2, BattleshipField.B3);
+			case B1 -> List.of(BattleshipField.A1, BattleshipField.C1, BattleshipField.B2);
+            case B2 -> List.of(BattleshipField.A2, BattleshipField.C2, BattleshipField.B1, BattleshipField.B3);
+            case B3 -> List.of(BattleshipField.A3, BattleshipField.C3, BattleshipField.B2);
+            case C1 -> List.of(BattleshipField.B1, BattleshipField.C2);
+            case C2 -> List.of(BattleshipField.C1, BattleshipField.C3, BattleshipField.B2);
+            default -> List.of(BattleshipField.C2, BattleshipField.B3);
+        };
+	}
+
 	@Override
 	public ShipPosition placeYourShip() {
-		// TODO: replace this implementation: always top-left is not that good...
 		BattleshipField fieldOne = randomField();
 
 		BattleshipField fieldTwo = checkShip(fieldOne);
@@ -85,7 +92,11 @@ public class RicoPlayer implements BattleshipPlayer {
 	public BattleshipField checkAim() {
         BattleshipField shot;
         do {
-            shot = randomField();
+			if (nextFieldsToBeHit != null && !new HashSet<>(shots).containsAll(nextFieldsToBeHit)) {
+				shot = getRandomFieldFromList(nextFieldsToBeHit);
+			} else {
+				shot = randomField();
+			}
         } while (shots.contains(shot));
 
         shots.add(shot);
@@ -95,8 +106,6 @@ public class RicoPlayer implements BattleshipPlayer {
 
 	@Override
 	public BattleshipField takeAim() {
-		// TODO: replace this implementation: always bottom-right is not that good...
-
         return checkAim();
 	}
 
@@ -104,4 +113,16 @@ public class RicoPlayer implements BattleshipPlayer {
 	public void gameFinished(ShipPosition opponentShip, boolean youHaveWon) {
 		averageMoveCounts.add(shots.size());
 	}
+
+	@Override
+	public void outcomeOfYourTurn(BattleshipField targetedField, boolean isHit) {
+		if (isHit) {
+			nextFieldsToBeHit = getSurroundingFields(targetedField);
+		}
+	}
+
+	public BattleshipField getRandomFieldFromList(List<BattleshipField> targetedFields) {
+		return targetedFields.get(
+				(int) (Math.random() * targetedFields.size())
+		);	}
 }
